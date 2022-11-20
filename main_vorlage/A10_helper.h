@@ -13,9 +13,12 @@ void Sub_blink_testLED(int verzoegerung, int pulsecount = 1,int TEST_LED=13){
 void Sub_had_reset(){
 	Serial.println("extSUB->A10_mqtt: sub_had_reset:-----> RESET done");
 	#ifdef MQTT
-		MQTTclient.publish("Info/Reset", "Done" );
+		strcpy(mqtt_publish_topic, hostname);
+		strcat(mqtt_publish_topic, "/Info/Reset/");
+				
+		MQTTclient.publish(mqtt_publish_topic, "Done" );
 		delay(1000);
-		MQTTclient.publish("Info/Reset", "OFF" );
+		MQTTclient.publish(mqtt_publish_topic, "OFF" );
 	#endif
 }
 
@@ -25,9 +28,11 @@ void Sub_printVersion(){
   Serial.println();
   Serial.print(__DATE__);
   Serial.print(" ");
-  Serial.println(__TIME__);
-  Serial.print("Version=");
-  Serial.println(VERSION);
+  Serial.print(__TIME__);
+  Serial.print("   Version=");
+  Serial.print(VERSION);
+  Serial.print("   GIT_VERSION=");
+  Serial.println(GIT_VERSION);
   Serial.println();
   Serial.println();
 

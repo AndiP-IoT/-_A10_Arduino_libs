@@ -4,7 +4,7 @@ void Sub_DS1820_printAddress(DeviceAddress deviceAddress, char *temp2) {
 		Serial.println("extSUB->A10_DS1820: Sub_DS1820_printAddress START\n");
 	#endif
 	if (OneWire::crc8(deviceAddress, 7) != deviceAddress[7]) {
-		Serial.println("hat keinen gueltigen CRC!");
+		Serial.println("    hat keinen gueltigen CRC!");
 	} else {
 		//alles ist ok, anzeigen
 		char bufferx[3];
@@ -14,7 +14,7 @@ void Sub_DS1820_printAddress(DeviceAddress deviceAddress, char *temp2) {
 		}
 	}
 	#if defined(DEBUG) || defined(DEBUG_DS1820)
-		Serial.println("-> Sub_DS1820_printAddress END\n");
+		Serial.println("    -> Sub_DS1820_printAddress END\n");
 	#endif
 }
 
@@ -45,7 +45,7 @@ void Sub_DS1820_allsensors_read() {
 	DS1820_sensors.begin();
 	DS1820_deviceCount = DS1820_sensors.getDeviceCount();
 	if (max_DS1820_count<=DS1820_deviceCount){
-			Serial.println("########## ACHTUNG ######### zu viele DS1820 -> 'max_DS1820_count' ändern!!");
+			Serial.println("    ########## ACHTUNG ######### zu viele DS1820 -> 'max_DS1820_count' ändern!!");
 	}
 	#if ((defined(DEBUG) || defined(DEBUG_DS1820))   )
 		Serial.print(F("checkpoint Sub_DS1820_allsensors_read(): DS1820_deviceCount="));
@@ -80,15 +80,24 @@ void Sub_DS1820_allsensors_read() {
 	void Sub_DS1820_all_send_MQTT(byte deviceCount) {
 	//deviceCount als Rückgabewert von Aufruf Sub_DS1820_allsensors_read
 		#if defined(DEBUG) || defined(DEBUG_DS1820) || defined(DEBUG_MQTT)
-			Serial.print("deviceCount=");
+			Serial.println("extSUB->A10_DS1820:  Sub_DS1820_all_send_MQTT beginn");
+			Serial.print("  deviceCount=");
 			Serial.println(deviceCount);
 			Serial.println("-----------checkpoint:Sub_status_MQTT_DS1820  beginn");
 		#endif
+		if (deviceCount==0) return;
 		//if (client.connect("arduinoClient", "openhabian", "affe123456")) {
 			//Serial.println("Sub_status_MQTT_DS1820 connected");
+		if (!MQTTclient.connected()) {
+			Serial.println("extSUB->A10_DS1820: Sub_DS1820_all_send_MQTT-> MQTT not connected");
+		}else{
 			for (int i = 0; i < deviceCount;  i++) {
+				Serial.print(DS1820_all_names[i]);
+				Serial.print(" = ");
+				Serial.println(DS1820_all_values[i]);
 				//char topic[50];
-				strcpy(mqtt_publish_topic, "Solar/DS1820/");
+				strcpy(mqtt_publish_topic, hostname);
+				strcat(mqtt_publish_topic, "/DS1820/");
 				strcat(mqtt_publish_topic, DS1820_all_names[i]);
 				dtostrf(DS1820_all_values[i], 4, 1, mqtt_publish_msg);
 				MQTTclient.publish(mqtt_publish_topic, mqtt_publish_msg);
@@ -103,8 +112,11 @@ void Sub_DS1820_allsensors_read() {
 					Serial.println();
 				#endif
 			}
-		//}
-		//Serial.println("-----------checkpoint:Sub_status_MQTT_DS1820 -----------------end");
+		}
+		#if defined(DEBUG) || defined(DEBUG_DS1820) || defined(DEBUG_MQTT)
+			Serial.println("extSUB->A10_DS1820:  Sub_DS1820_all_send_MQTT END");
+			Serial.println();
+		#endif
 	}
 #endif
 
